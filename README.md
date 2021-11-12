@@ -1,3 +1,7 @@
+# Fork information
+
+This is a fork of Serde JSON that adds ability to encode and decode Value structure via rkyv
+
 # Serde JSON &emsp; [![Build Status]][travis] [![Latest Version]][crates.io] [![Rustc Version 1.36+]][rustc]
 
 [Build Status]: https://img.shields.io/github/workflow/status/serde-rs/json/CI/master

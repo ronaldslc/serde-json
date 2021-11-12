@@ -1,5 +1,6 @@
 use crate::de::ParserNumber;
 use crate::error::Error;
+use rkyv::{Archive, Deserialize as RkyvDe, Serialize as RkyvSe};
 #[cfg(feature = "arbitrary_precision")]
 use crate::error::ErrorCode;
 #[cfg(feature = "arbitrary_precision")]
@@ -18,14 +19,14 @@ use serde::{forward_to_deserialize_any, Deserialize, Deserializer, Serialize, Se
 pub(crate) const TOKEN: &str = "$serde_json::private::Number";
 
 /// Represents a JSON number, whether integer or floating point.
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Archive, RkyvSe, RkyvDe)]
 pub struct Number {
     n: N,
 }
 
 #[cfg(not(feature = "arbitrary_precision"))]
-#[derive(Copy, Clone)]
-enum N {
+#[derive(Copy, Clone, Archive, Debug, RkyvSe, RkyvDe)]
+pub enum N {
     PosInt(u64),
     /// Always less than zero.
     NegInt(i64),

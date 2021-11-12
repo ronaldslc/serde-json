@@ -104,14 +104,37 @@ pub use self::index::Index;
 pub use self::ser::Serializer;
 pub use crate::map::Map;
 pub use crate::number::Number;
+use rkyv::{Archive, Deserialize as RkyvDe, Serialize as RkyvSe};
 
 #[cfg(feature = "raw_value")]
 pub use crate::raw::{to_raw_value, RawValue};
 
+// We have a recursive type, which requires some special handling
+//
+// First the compiler will return an error:
+//
+// > error[E0275]: overflow evaluating the requirement `HashMap<String, JsonValue>: Archive`
+//
+// This is because the implementation of Archive for Json value requires that JsonValue: Archive,
+//   which is recursive!
+// We can fix this by adding #[omit_bounds] on the recursive fields. This will prevent the derive
+//   from automatically adding a `HashMap<String, JsonValue>: Archive` bound on the generated impl.
+//
+// Next, the compiler will return these errors:
+//
+// > error[E0277]: the trait bound `__S: ScratchSpace` is not satisfied
+// > error[E0277]: the trait bound `__S: Serializer` is not satisfied
+//
+// This is because those bounds are required by HashMap and Vec, but we removed the default
+//   generated bounds to prevent a recursive impl.
+// We can fix this by manually specifying the bounds required by HashMap and Vec in an attribute,
+//   and then everything will compile:
+
 /// Represents any valid JSON value.
 ///
 /// See the [`serde_json::value` module documentation](self) for usage examples.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Archive, RkyvDe, RkyvSe)]
+#[archive(bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer"))]
 pub enum Value {
     /// Represents a JSON null value.
     ///
@@ -156,7 +179,7 @@ pub enum Value {
     /// #
     /// let v = json!(["an", "array"]);
     /// ```
-    Array(Vec<Value>),
+    Array(#[omit_bounds] Vec<Value>),
 
     /// Represents a JSON object.
     ///
@@ -171,7 +194,7 @@ pub enum Value {
     /// #
     /// let v = json!({ "an": "object" });
     /// ```
-    Object(Map<String, Value>),
+    Object(#[omit_bounds] Map<String, Value>),
 }
 
 impl Debug for Value {
