@@ -1,5 +1,5 @@
 use rkyv::{
-    archived_root,
+    check_archived_root,
     ser::{serializers::AllocSerializer, Serializer},
     Deserialize as RkyvDe, Infallible,
 };
@@ -21,7 +21,7 @@ fn test_json_value_rkyv() {
     serializer.serialize_value(&v).unwrap();
     let bytes = serializer.into_serializer().into_inner();
 
-    let archived = unsafe { archived_root::<Value>(&bytes[..]) };
+    let archived = check_archived_root::<Value>(&bytes[..]).unwrap();
     let v2: Value = archived.deserialize(&mut Infallible).unwrap();
     assert_eq!(v.get("a"), v2.get("a"));
     assert_eq!(v.get("b"), v2.get("b"));

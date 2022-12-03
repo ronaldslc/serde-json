@@ -8,6 +8,7 @@
 
 use crate::value::Value;
 use alloc::string::String;
+use bytecheck::CheckBytes;
 use core::borrow::Borrow;
 use core::fmt::{self, Debug};
 use core::hash::Hash;
@@ -15,8 +16,8 @@ use core::iter::{FromIterator, FusedIterator};
 #[cfg(feature = "preserve_order")]
 use core::mem;
 use core::ops;
-use serde::de;
 use rkyv::{Archive, Deserialize as RkyvDe, Serialize as RkyvSe};
+use serde::de;
 
 #[cfg(not(feature = "preserve_order"))]
 use alloc::collections::{btree_map, BTreeMap};
@@ -25,6 +26,7 @@ use indexmap::{self, IndexMap};
 
 /// Represents a JSON key/value type.
 #[derive(Archive, RkyvSe, RkyvDe)]
+#[archive_attr(derive(CheckBytes))]
 pub struct Map<K, V> {
     map: MapImpl<K, V>,
 }

@@ -104,6 +104,7 @@ pub use self::index::Index;
 pub use self::ser::Serializer;
 pub use crate::map::Map;
 pub use crate::number::Number;
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize as RkyvDe, Serialize as RkyvSe};
 
 #[cfg(feature = "raw_value")]
@@ -135,6 +136,12 @@ pub use crate::raw::{to_raw_value, RawValue};
 /// See the [`serde_json::value` module documentation](self) for usage examples.
 #[derive(Clone, Eq, PartialEq, Archive, RkyvDe, RkyvSe)]
 #[archive(bound(serialize = "__S: rkyv::ser::ScratchSpace + rkyv::ser::Serializer"))]
+#[archive_attr(
+    derive(CheckBytes),
+    check_bytes(
+        bound = "__C: rkyv::validation::ArchiveContext, <__C as rkyv::Fallible>::Error: std::error::Error"
+    )
+)]
 pub enum Value {
     /// Represents a JSON null value.
     ///
@@ -179,7 +186,11 @@ pub enum Value {
     /// #
     /// let v = json!(["an", "array"]);
     /// ```
-    Array(#[omit_bounds] Vec<Value>),
+    Array(
+        #[omit_bounds]
+        #[archive_attr(omit_bounds)]
+        Vec<Value>,
+    ),
 
     /// Represents a JSON object.
     ///
@@ -194,7 +205,11 @@ pub enum Value {
     /// #
     /// let v = json!({ "an": "object" });
     /// ```
-    Object(#[omit_bounds] Map<String, Value>),
+    Object(
+        #[omit_bounds]
+        #[archive_attr(omit_bounds)]
+        Map<String, Value>,
+    ),
 }
 
 impl Debug for Value {

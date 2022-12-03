@@ -1,15 +1,16 @@
 use crate::de::ParserNumber;
 use crate::error::Error;
-use rkyv::{Archive, Deserialize as RkyvDe, Serialize as RkyvSe};
 #[cfg(feature = "arbitrary_precision")]
 use crate::error::ErrorCode;
 #[cfg(feature = "arbitrary_precision")]
 use alloc::borrow::ToOwned;
 #[cfg(feature = "arbitrary_precision")]
 use alloc::string::{String, ToString};
+use bytecheck::CheckBytes;
 use core::fmt::{self, Debug, Display};
 #[cfg(not(feature = "arbitrary_precision"))]
 use core::hash::{Hash, Hasher};
+use rkyv::{Archive, Deserialize as RkyvDe, Serialize as RkyvSe};
 use serde::de::{self, Unexpected, Visitor};
 #[cfg(feature = "arbitrary_precision")]
 use serde::de::{IntoDeserializer, MapAccess};
@@ -20,12 +21,14 @@ pub(crate) const TOKEN: &str = "$serde_json::private::Number";
 
 /// Represents a JSON number, whether integer or floating point.
 #[derive(Clone, PartialEq, Eq, Hash, Archive, RkyvSe, RkyvDe)]
+#[archive_attr(derive(CheckBytes))]
 pub struct Number {
     n: N,
 }
 
 #[cfg(not(feature = "arbitrary_precision"))]
 #[derive(Copy, Clone, Archive, Debug, RkyvSe, RkyvDe)]
+#[archive_attr(derive(CheckBytes))]
 pub enum N {
     PosInt(u64),
     /// Always less than zero.
