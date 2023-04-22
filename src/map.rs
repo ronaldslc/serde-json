@@ -8,7 +8,6 @@
 
 use crate::value::Value;
 use alloc::string::String;
-use bytecheck::CheckBytes;
 use core::borrow::Borrow;
 use core::fmt::{self, Debug};
 use core::hash::Hash;
@@ -26,7 +25,7 @@ use indexmap::{self, IndexMap};
 
 /// Represents a JSON key/value type.
 #[derive(Archive, RkyvSe, RkyvDe)]
-#[archive_attr(derive(CheckBytes))]
+#[archive(check_bytes)]
 pub struct Map<K, V> {
     map: MapImpl<K, V>,
 }
